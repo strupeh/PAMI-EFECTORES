@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Padrón de Afiliados · PAMI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap');
+  :root {
+    --bg:#f0f2f5;--surface:#fff;--surface2:#f7f8fa;--border:#e2e6ec;
+    --accent:#0057a8;--accent-light:#e8f0fb;--accent2:#00a86b;
+    --text:#1a1f2e;--muted:#6b7280;--shadow:0 2px 12px rgba(0,0,0,.07);
+    --shadow-lg:0 8px 32px rgba(0,0,0,.14);--radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  header{background:linear-gradient(135deg,#003d94,#0057a8 60%,#0072d4);color:#fff;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:68px;box-shadow:0 2px 16px rgba(0,60,150,.3);position:sticky;top:0;z-index:100;}
+  .header-brand{display:flex;align-items:center;gap:14px;}
+  .pami-badge{background:#fff;color:#0057a8;font-weight:700;font-size:15px;letter-spacing:1.5px;padding:5px 11px;border-radius:6px;}
+  header h1{font-size:17px;font-weight:600;opacity:.95;}
+  header p{font-size:12px;opacity:.65;font-weight:300;margin-top:1px;}
+  .header-right{display:flex;gap:10px;align-items:center;}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s;white-space:nowrap;}
+  .btn-primary{background:#fff;color:#0057a8;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .btn-primary:hover{background:#e8f0fb;transform:translateY(-1px);}
+  .btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent);padding:8px 16px;}
+  .btn-outline:hover{background:var(--accent-light);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+  .btn-mail{background:#7c3aed;color:#fff;}
+  .btn-mail:hover:not(:disabled){background:#6d28d9;transform:translateY(-1px);}
+  .btn-mail:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-import-efect{background:linear-gradient(135deg,#2d7dd2,#1a5fa8);color:#fff;border:1.5px solid rgba(255,255,255,.3);}
+  .btn-import-efect:hover:not(:disabled){background:linear-gradient(135deg,#3a8ce0,#2469b8);transform:translateY(-1px);}
+  .btn-import-efect:disabled{opacity:.45;cursor:not-allowed;}
+  .btn-import-efect.loading{background:linear-gradient(135deg,#f59e0b,#d97706);cursor:wait;}
+  .btn-import-efect.ok{background:linear-gradient(135deg,#10b981,#059669);}
+  .export-wrap{position:relative;}
+  .btn-export{background:var(--accent2);color:#fff;}
+  .btn-export:hover:not(:disabled){background:#009960;transform:translateY(-1px);}
+  .btn-export:disabled{background:#6b9e80;}
+  .export-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border-radius:10px;box-shadow:var(--shadow-lg);border:1px solid var(--border);min-width:200px;overflow:hidden;z-index:200;}
+  .export-menu.open{display:block;}
+  .export-menu button{width:100%;padding:12px 18px;text-align:left;background:none;border:none;font-family:'Sora',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:10px;transition:background .12s;}
+  .export-menu button:hover{background:var(--surface2);}
+  .export-menu button+button{border-top:1px solid var(--border);}
+
+  #medico-bar{display:none;background:linear-gradient(135deg,#e8f0fb,#dbeafe);border-bottom:1px solid #b8d0f0;padding:10px 32px;align-items:center;gap:20px;flex-wrap:wrap;}
+  #medico-bar.visible{display:flex;}
+  .medico-nombre{font-weight:700;font-size:15px;color:#003d94;}
+  .medico-usuario{font-family:'DM Mono',monospace;font-size:12px;color:#0057a8;background:rgba(0,87,168,.1);padding:3px 10px;border-radius:12px;}
+  .medico-padron-fecha{font-size:11px;color:var(--muted);margin-left:auto;}
+  .medico-sin-padron{font-size:12px;color:#d97706;background:#fef3c7;padding:3px 10px;border-radius:12px;font-weight:500;}
+
+  main{max-width:1400px;margin:0 auto;padding:28px 24px;}
+
+  #dropzone{border:2.5px dashed #b0bdd6;border-radius:16px;background:var(--surface);text-align:center;padding:64px 32px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);}
+  #dropzone:hover,#dropzone.dragover{border-color:var(--accent);background:var(--accent-light);}
+  #dropzone .drop-icon{font-size:56px;margin-bottom:16px;display:block;}
+  #dropzone h2{font-size:20px;font-weight:600;margin-bottom:8px;}
+  #dropzone p{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  #dropzone .formats{font-size:12px;color:#9ca3af;margin-top:12px;font-family:'DM Mono',monospace;}
+
+  #stats-bar{display:none;background:var(--surface);border-radius:var(--radius);padding:16px 24px;margin-bottom:20px;box-shadow:var(--shadow);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  #stats-bar.visible{display:flex;}
+  .stat-group{display:flex;gap:24px;flex-wrap:wrap;}
+  .stat{display:flex;flex-direction:column;}
+  .stat-value{font-size:22px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;line-height:1;}
+  .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px;}
+
+  #controls{display:none;background:var(--surface);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;box-shadow:var(--shadow);gap:12px;align-items:center;flex-wrap:wrap;}
+  #controls.visible{display:flex;}
+  .search-wrap{position:relative;flex:1;min-width:200px;}
+  .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none;}
+  #search-input{width:100%;padding:9px 14px 9px 36px;border:1.5px solid var(--border);border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);background:var(--surface2);transition:border .15s;}
+  #search-input:focus{outline:none;border-color:var(--accent);background:#fff;}
+  .filter-group{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:500;}
+  .filter-group select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;color:var(--text);background:var(--surface2);cursor:pointer;}
+  .filter-group select:focus{outline:none;border-color:var(--accent);}
+  #count-badge{font-family:'DM Mono',monospace;font-size:12px;background:var(--accent-light);color:var(--accent);padding:5px 12px;border-radius:20px;font-weight:500;white-space:nowrap;}
+
+  #table-wrap{display:none;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  #table-wrap.visible{display:block;}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead{background:linear-gradient(135deg,#003d94,#0057a8);color:#fff;}
+  th{padding:13px 16px;text-align:left;font-weight:600;font-size:12px;letter-spacing:.5px;white-space:nowrap;user-select:none;}
+  th.sortable{cursor:pointer;transition:background .15s;}
+  th.sortable:hover{background:rgba(255,255,255,.15);}
+  th.sorted-asc,th.sorted-desc{background:rgba(255,255,255,.2);}
+  .sort-icon{display:inline-block;margin-left:6px;opacity:.5;font-size:10px;vertical-align:middle;}
+  th.sorted-asc .sort-icon,th.sorted-desc .sort-icon{opacity:1;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:var(--accent-light);}
+  tbody tr:nth-child(even){background:var(--surface2);}
+  tbody tr:nth-child(even):hover{background:var(--accent-light);}
+  td{padding:11px 16px;vertical-align:middle;}
+  .cell-beneficio{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:500;}
+  .cell-nombre{font-weight:600;}
+  .cell-doc{font-family:'DM Mono',monospace;font-size:12px;}
+  .cell-fecha{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+  .badge-grado{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;}
+  .badge-00{background:#dbeafe;color:#1d4ed8;}
+  .badge-other{background:#fef3c7;color:#92400e;}
+  .badge-modulo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;font-size:12px;font-weight:700;background:#d1fae5;color:#065f46;font-family:'DM Mono',monospace;}
+  .empty-state{text-align:center;padding:48px;color:var(--muted);}
+  .empty-state .empty-icon{font-size:40px;margin-bottom:12px;}
+
+  #footer-bar{display:none;background:var(--surface);border-radius:var(--radius);padding:14px 20px;margin-top:16px;box-shadow:var(--shadow);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  #footer-bar.visible{display:flex;}
+  .sort-info{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+  .sort-chip{background:var(--accent-light);color:var(--accent);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;}
+
+  #loading{display:none;text-align:center;padding:48px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.45);z-index:500;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:16px;box-shadow:var(--shadow-lg);width:100%;max-width:520px;overflow:hidden;animation:slideUp .25s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes slideUp{from{opacity:0;transform:translateY(24px);}}
+  .modal-header{background:linear-gradient(135deg,#003d94,#0057a8);color:#fff;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .modal-header h3{font-size:16px;font-weight:600;}
+  .modal-header .modal-sub{font-size:12px;opacity:.7;margin-top:2px;}
+  .modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1;opacity:.7;}
+  .modal-close:hover{opacity:1;}
+  .modal-body{padding:24px;}
+  .modal-body p{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .col-checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .col-check{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s;background:var(--surface2);}
+  .col-check:hover{border-color:var(--accent);background:var(--accent-light);}
+  .col-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+  .col-check label{font-size:13px;font-weight:500;cursor:pointer;line-height:1.3;}
+  .col-check.checked{border-color:var(--accent);background:var(--accent-light);}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;padding:0 24px 24px;}
+  .btn-modal-cancel{background:var(--surface2);color:var(--muted);border:1.5px solid var(--border);padding:10px 20px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+  .btn-modal-ok{background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+  .btn-modal-ok:hover{background:#003d94;}
+  .select-all-row{display:flex;gap:8px;margin-bottom:12px;}
+  .link-btn{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;font-weight:500;padding:0;text-decoration:underline;}
+
+  #toast{position:fixed;bottom:24px;right:24px;background:#1a1f2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:999;max-width:320px;}
+  #toast.show{transform:translateY(0);opacity:1;}
+  #file-input{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="pami-badge">PAMI</div>
+    <div>
+      <h1 id="header-title">Padrón de Afiliados</h1>
+      <p id="header-sub">Gestión y ordenamiento de padrón médico</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-import-efect" id="btn-import-efect" onclick="actualizarPadron()">🔄 Actualizar padrón</button>
+    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">📂 Importar Excel</button>
+    <button class="btn btn-mail" id="btn-enviar-mail" disabled onclick="enviarPorMail()">✉ Enviar por mail</button>
+    <div class="export-wrap">
+      <button class="btn btn-export" id="export-btn" disabled onclick="toggleExportMenu()">⬇ Exportar ▾</button>
+      <div class="export-menu" id="export-menu">
+        <button onclick="openExportModal('excel')">📊 &nbsp;Exportar a Excel (.xls)</button>
+        <button onclick="openExportModal('pdf')">📄 &nbsp;Exportar a PDF</button>
+        <button onclick="exportToHtml();document.getElementById('export-menu').classList.remove('open')">🌐 &nbsp;Exportar a HTML</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<input type="file" id="file-input" accept=".xls,.xlsx,.xml" onchange="handleFile(this.files[0])">
+
+<div id="medico-bar">
+  <span class="medico-nombre" id="medico-nombre-display">—</span>
+  <span class="medico-usuario" id="medico-usuario-display">—</span>
+  <span id="medico-padron-estado" class="medico-sin-padron">Sin padrón cargado</span>
+  <span class="medico-padron-fecha" id="medico-padron-fecha"></span>
+</div>
+
+<main>
+  <div id="dropzone" onclick="document.getElementById('file-input').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+    <span class="drop-icon">📋</span>
+    <h2 id="dropzone-title">Importá el padrón de afiliados</h2>
+    <p id="dropzone-sub">Usá "Actualizar padrón" para descarga automática desde Efectores,<br>o arrastrá el archivo acá para cargarlo manualmente.</p>
+    <button class="btn btn-outline" onclick="event.stopPropagation();document.getElementById('file-input').click()">Seleccionar archivo manualmente</button>
+    <div class="formats">.xls · .xlsx · Formato PAMI</div>
+  </div>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p style="color:var(--muted);font-size:14px;">Procesando padrón...</p>
+  </div>
+
+  <div id="stats-bar">
+    <div class="stat-group">
+      <div class="stat"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Afiliados totales</span></div>
+      <div class="stat"><span class="stat-value" id="stat-titulares">0</span><span class="stat-label">Titulares (Grado 00)</span></div>
+      <div class="stat"><span class="stat-value" id="stat-otros">0</span><span class="stat-label">Adherentes</span></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);text-align:right">
+      <div id="stat-filename" style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:600"></div>
+      <div style="margin-top:2px">Archivo cargado correctamente ✓</div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Buscar por nombre, DNI o N° de beneficio..." oninput="applyFilters()">
+    </div>
+    <div class="filter-group">Grado:
+      <select id="filter-grado" onchange="applyFilters()">
+        <option value="">Todos</option>
+        <option value="00">00 – Titular</option>
+        <option value="other">Adherente</option>
+      </select>
+    </div>
+    <div class="filter-group">Doc:
+      <select id="filter-tipo-doc" onchange="applyFilters()">
+        <option value="">Todos</option>
+        <option value="DNI">DNI</option><option value="LC">LC</option>
+        <option value="LE">LE</option><option value="CI">CI</option><option value="PAS">PAS</option>
+      </select>
+    </div>
+    <span id="count-badge">0 registros</span>
+  </div>
+
+  <div id="table-wrap">
+    <div class="table-scroll">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortBy(0)" data-col="0">N° Beneficio <span class="sort-icon">⇅</span></th>
+            <th class="no-sort">Grado</th>
+            <th class="sortable" onclick="sortBy(2)" data-col="2">Apellido y Nombre <span class="sort-icon">⇅</span></th>
+            <th class="no-sort">Tipo Doc</th>
+            <th class="sortable" onclick="sortBy(4)" data-col="4">N° Documento <span class="sort-icon">⇅</span></th>
+            <th class="sortable" onclick="sortBy(5)" data-col="5">Fecha Nacimiento <span class="sort-icon">⇅</span></th>
+            <th class="no-sort">Módulos</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div id="empty-state" class="empty-state" style="display:none">
+      <div class="empty-icon">🔎</div>
+      <p>No se encontraron resultados</p>
+    </div>
+  </div>
+
+  <div id="footer-bar">
+    <div class="sort-info">Ordenado por: <span class="sort-chip" id="sort-label">Apellido y Nombre</span> <span id="sort-dir-label">↑ Ascendente</span></div>
+    <div style="font-size:12px;color:var(--muted)">Cliqueá los encabezados para reordenar</div>
+  </div>
+</main>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h3 id="modal-title">Exportar</h3><div class="modal-sub" id="modal-sub">Seleccioná las columnas</div></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="select-all-row">
+        <button class="link-btn" onclick="selectAllCols(true)">Seleccionar todas</button>
+        <span style="color:var(--border)">·</span>
+        <button class="link-btn" onclick="selectAllCols(false)">Deseleccionar todas</button>
+      </div>
+      <div class="col-checks" id="col-checks"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-modal-ok" id="modal-ok-btn" onclick="doExport()">Exportar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIL PRE-MODAL -->
+<div class="modal-overlay" id="mail-pre-modal-overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)">
+      <div><h3 id="mail-pre-titulo">✉ Enviar padrón por mail</h3><div class="modal-sub">Seleccioná los archivos a generar y enviar</div></div>
+      <button class="modal-close" onclick="cerrarMailPreModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6">Se generarán y descargarán los archivos seleccionados. Luego se abrirá el cliente de mail con el correo prellenado.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <label class="col-check checked" id="mail-chk-wrap-excel" onclick="toggleMailChk('excel')">
+          <input type="checkbox" id="mail-chk-excel" checked onclick="event.stopPropagation();syncMailChkClass('excel')">
+          <span style="font-size:16px">📊</span><label for="mail-chk-excel" style="cursor:pointer;font-size:13px;font-weight:500">Excel (.xls)</label>
+        </label>
+        <label class="col-check checked" id="mail-chk-wrap-pdf" onclick="toggleMailChk('pdf')">
+          <input type="checkbox" id="mail-chk-pdf" checked onclick="event.stopPropagation();syncMailChkClass('pdf')">
+          <span style="font-size:16px">📄</span><label for="mail-chk-pdf" style="cursor:pointer;font-size:13px;font-weight:500">PDF</label>
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="cerrarMailPreModal()">Cancelar</button>
+      <button class="btn-modal-ok" style="background:#7c3aed" onclick="confirmarEnvioMail()">✉ Generar y enviar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
+<script>
+// ── STATE ──
+let allData = [];
+let filteredData = [];
+let currentSort = { col: 2, dir: 'asc' };
+let originalFilename = 'padron_pami';
+let exportType = 'excel';
+let medicoActivo = null;
+
+const COLS = [
+  {key:0,label:'N° Beneficio'},{key:1,label:'Grado'},{key:2,label:'Apellido y Nombre'},
+  {key:3,label:'Tipo Doc'},{key:4,label:'N° Documento'},{key:5,label:'Fecha Nacimiento'},{key:6,label:'Módulos'}
+];
+const SORTABLE_COLS = {0:'N° Beneficio',2:'Apellido y Nombre',4:'N° Documento',5:'Fecha Nacimiento'};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  if (!requireAuth()) {
+    document.body.innerHTML = '<div style="text-align:center;padding:80px;font-family:sans-serif;color:#6b7280">🔒 Acceso denegado. Recargá la página.</div>';
+    return;
+  }
+
+  // 1. Leer médico desde sessionStorage (puesto por usuarios_pami.html)
+  const medicoRaw = sessionStorage.getItem('pami_medico_activo');
+  if (medicoRaw) {
+    try {
+      medicoActivo = JSON.parse(medicoRaw);
+      // Enriquecer mail desde Supabase
+      medicoActivo = await enrichMedicoConMail(medicoActivo);
+    } catch(e) { medicoActivo = null; }
+  }
+
+  // 2. Si no hay handoff, intentar recuperar por parámetro de URL
+  if (!medicoActivo) {
+    const params = new URLSearchParams(window.location.search);
+    const u = params.get('u');
+    if (u) {
+      const { data: row } = await db.from('medicos').select('*').ilike('usuario', u.trim()).maybeSingle();
+      if (row) medicoActivo = { id: row.id, usuario: row.usuario.trim(), nombre: row.nombre, clave: row.contrasena, mail: row.mail };
+    }
+  }
+
+  actualizarBarraMedico();
+
+  // 3. Cargar padrón desde Supabase si existe
+  if (medicoActivo && medicoActivo.id) {
+    await cargarPadronDesdeSupabase();
+  }
+
+  // 4. Verificar extensión Chrome
+  verificarPadronExtension();
+});
+
+async function enrichMedicoConMail(medico) {
+  if (!medico || !medico.usuario) return medico;
+  try {
+    const { data: row } = await db.from('medicos').select('mail,id').ilike('usuario', medico.usuario.trim()).maybeSingle();
+    if (row) { medico.mail = row.mail || ''; medico.id = row.id; }
+  } catch(e) {}
+  return medico;
+}
+
+// ── CARGAR PADRÓN DESDE SUPABASE ─────────────────────────────────────────────
+async function cargarPadronDesdeSupabase() {
+  try {
+    const { data: row } = await db.from('padrones')
+      .select('*').eq('medico_id', medicoActivo.id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    if (!row) return;
+    allData = row.filas;
+    originalFilename = row.filename || 'padron_' + medicoActivo.usuario;
+    currentSort = { col: 2, dir: 'asc' };
+    updateStats(row.filename);
+    sortData();
+    showApp();
+    actualizarEstadoPadron(row.updated_at ? new Date(row.updated_at).toLocaleString('es-AR') : '');
+    toast('📋 Padrón de ' + medicoActivo.nombre + ' cargado desde la nube');
+  } catch(e) {
+    console.warn('Error cargando padrón:', e.message);
+  }
+}
+
+// ── GUARDAR PADRÓN EN SUPABASE ────────────────────────────────────────────────
+async function guardarPadronEnSupabase(filename) {
+  if (!medicoActivo || !medicoActivo.id) return;
+  try {
+    // Upsert: si ya existe un padrón para este médico, lo actualiza
+    const { error } = await db.from('padrones').upsert({
+      medico_id: medicoActivo.id,
+      filename,
+      filas: allData,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'medico_id' });
+    if (error) throw error;
+    const fecha = new Date().toLocaleString('es-AR');
+    actualizarEstadoPadron(fecha);
+    toast('☁️ Padrón guardado en la nube');
+  } catch(e) {
+    toast('⚠ No se pudo guardar en la nube: ' + e.message);
+  }
+}
+
+function actualizarBarraMedico() {
+  if (!medicoActivo) return;
+  document.getElementById('medico-bar').classList.add('visible');
+  document.getElementById('medico-nombre-display').textContent = medicoActivo.nombre || 'Médico';
+  document.getElementById('medico-usuario-display').textContent = medicoActivo.usuario || '—';
+  document.getElementById('header-title').textContent = 'Padrón · ' + (medicoActivo.nombre || medicoActivo.usuario);
+  document.getElementById('header-sub').textContent = 'Usuario PAMI: ' + (medicoActivo.usuario || '—');
+}
+
+function actualizarEstadoPadron(fecha) {
+  const el = document.getElementById('medico-padron-estado');
+  el.textContent = '✓ Padrón cargado';
+  el.className = 'medico-usuario';
+  if (fecha) document.getElementById('medico-padron-fecha').textContent = 'Última actualización: ' + fecha;
+}
+
+// ── EXTENSIÓN CHROME ──────────────────────────────────────────────────────────
+// IMPORTANTE: reemplazá con el ID de tu extensión (lo ves en chrome://extensions)
+const PAMI_EXTENSION_ID = 'fdpadomooblnoapkajllkfolkcbbdibc';
+let pollingIntervalo = null;
+
+function actualizarPadron() {
+  if (!medicoActivo) { alert('No hay médico activo.'); return; }
+  if (!medicoActivo.clave) { alert('Este médico no tiene contraseña de Efectores guardada.'); return; }
+  if (typeof chrome === 'undefined' || !chrome.runtime) {
+    alert('La extensión PAMI Padrón no está instalada o no está activa.\nInstalá la extensión desde chrome://extensions.');
+    return;
+  }
+  const btn = document.getElementById('btn-import-efect');
+  btn.classList.add('loading'); btn.textContent = '⏳ Iniciando...'; btn.disabled = true;
+  chrome.runtime.sendMessage(PAMI_EXTENSION_ID,
+    { action: 'descargarPadron', usuario: medicoActivo.usuario, contrasena: medicoActivo.clave },
+    (response) => {
+      if (chrome.runtime.lastError || !response || !response.ok) {
+        btn.classList.remove('loading'); btn.textContent = '🔄 Actualizar padrón'; btn.disabled = false;
+        alert('No se pudo conectar con la extensión PAMI.\nVerificá que esté instalada y que el dominio esté autorizado en el manifest.');
+        return;
+      }
+      toast('🔄 Descargando padrón de ' + medicoActivo.nombre + '...');
+      iniciarPolling(btn);
+    }
+  );
+}
+
+function iniciarPolling(btn) {
+  let intentos = 0;
+  if (pollingIntervalo) clearInterval(pollingIntervalo);
+  pollingIntervalo = setInterval(() => {
+    intentos++;
+    if (intentos > 80) {
+      clearInterval(pollingIntervalo); pollingIntervalo = null;
+      btn.classList.remove('loading'); btn.textContent = '🔄 Actualizar padrón'; btn.disabled = false;
+      toast('⏱ Tiempo agotado. Intentá de nuevo.');
+      return;
+    }
+    chrome.runtime.sendMessage(PAMI_EXTENSION_ID, { action: 'getArchivoPadron' }, (response) => {
+      if (chrome.runtime.lastError || !response || !response.datos) return;
+      clearInterval(pollingIntervalo); pollingIntervalo = null;
+      btn.classList.remove('loading'); btn.classList.add('ok'); btn.textContent = '✔ Padrón actualizado';
+      setTimeout(() => { btn.classList.remove('ok'); btn.textContent = '🔄 Actualizar padrón'; btn.disabled = false; }, 3000);
+      cargarDesdeBase64(response.nombre, response.datos);
+    });
+  }, 3000);
+}
+
+function verificarPadronExtension() {
+  if (typeof chrome === 'undefined' || !chrome.runtime) return;
+  chrome.runtime.sendMessage(PAMI_EXTENSION_ID, { action: 'getArchivoPadron' }, (response) => {
+    if (chrome.runtime.lastError || !response || !response.datos) return;
+    cargarDesdeBase64(response.nombre, response.datos);
+  });
+}
+
+function cargarDesdeBase64(nombre, base64) {
+  toast('📂 Procesando padrón: ' + nombre + '...');
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const blob = new Blob([bytes.buffer], {type:'application/vnd.ms-excel'});
+  const file = new File([blob], nombre, {type:'application/vnd.ms-excel'});
+  handleFile(file);
+}
+
+// ── FILE HANDLING ─────────────────────────────────────────────────────────────
+function handleFile(file) {
+  if (!file) return;
+  originalFilename = file.name.replace(/\.[^.]+$/, '');
+  showLoading(true);
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = e.target.result;
+      const text = new TextDecoder('iso-8859-1').decode(data);
+      let rows;
+      if (text.includes('<?xml') || text.includes('<Workbook') || text.includes('<table')) {
+        rows = parseXmlExcel(text);
+      } else {
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, {header:1,raw:false});
+        rows = json.slice(1).filter(r => r.some(c => c !== undefined && c !== ''));
+      }
+      allData = rows;
+      updateStats(file.name);
+      currentSort = {col:2,dir:'asc'};
+      sortData(); showLoading(false); showApp();
+      toast('✅ Padrón cargado: ' + allData.length + ' afiliados');
+      await guardarPadronEnSupabase(originalFilename);
+    } catch(err) {
+      showLoading(false);
+      toast('❌ Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseXmlExcel(text) {
+  const doc = new DOMParser().parseFromString(text, 'text/xml');
+  const rows = doc.querySelectorAll('Row');
+  const result = []; let first = true;
+  rows.forEach(row => {
+    if (first) { first = false; return; }
+    const cells = row.querySelectorAll('Cell');
+    const rd = [];
+    cells.forEach(c => { const d = c.querySelector('Data'); rd.push(d ? d.textContent.trim() : ''); });
+    if (rd.some(c => c !== '')) result.push(rd);
+  });
+  return result;
+}
+
+// ── DRAG & DROP ───────────────────────────────────────────────────────────────
+function onDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
+function onDragLeave() { document.getElementById('dropzone').classList.remove('dragover'); }
+function onDrop(e) {
+  e.preventDefault(); document.getElementById('dropzone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0]; if (file) handleFile(file);
+}
+
+// ── SORTING ───────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if (currentSort.col === col) currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  else { currentSort.col = col; currentSort.dir = 'asc'; }
+  sortData(); updateSortHeaders(); updateSortLabel();
+}
+
+function sortData() {
+  const {col,dir} = currentSort;
+  filteredData = [...applySearchFilter()];
+  filteredData.sort((a,b) => {
+    let va = (a[col]||'').toString().trim();
+    let vb = (b[col]||'').toString().trim();
+    if (col===5) {
+      const toTs = s => { const p=s.split('/'); return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0; };
+      return dir==='asc'?toTs(va)-toTs(vb):toTs(vb)-toTs(va);
+    }
+    if (!isNaN(va)&&!isNaN(vb)&&va!==''&&vb!=='') return dir==='asc'?Number(va)-Number(vb):Number(vb)-Number(va);
+    const cmp = va.localeCompare(vb,'es',{sensitivity:'base'});
+    return dir==='asc'?cmp:-cmp;
+  });
+  renderTable();
+}
+
+function applySearchFilter() {
+  const search = document.getElementById('search-input').value.toLowerCase().trim();
+  const grado = document.getElementById('filter-grado').value;
+  const tipoDoc = document.getElementById('filter-tipo-doc').value;
+  return allData.filter(row => {
+    if (search && !(row[0]+' '+row[2]+' '+row[4]).toLowerCase().includes(search)) return false;
+    if (grado==='00' && row[1]!=='00') return false;
+    if (grado==='other' && row[1]==='00') return false;
+    if (tipoDoc && (row[3]||'').trim()!==tipoDoc) return false;
+    return true;
+  });
+}
+
+function applyFilters() { sortData(); }
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('count-badge').textContent = filteredData.length + ' registro' + (filteredData.length!==1?'s':'');
+  if (filteredData.length===0) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const frag = document.createDocumentFragment();
+  filteredData.forEach(row => {
+    const tr = document.createElement('tr');
+    const grado = (row[1]||'').trim();
+    tr.innerHTML = `
+      <td><span class="cell-beneficio">${esc(row[0])}</span></td>
+      <td><span class="badge-grado ${grado==='00'?'badge-00':'badge-other'}">${esc(grado)}</span></td>
+      <td><span class="cell-nombre">${esc(row[2])}</span></td>
+      <td><span class="cell-doc">${esc((row[3]||'').trim())}</span></td>
+      <td><span class="cell-doc">${esc(row[4])}</span></td>
+      <td><span class="cell-fecha">${esc(row[5])}</span></td>
+      <td><span class="badge-modulo">${esc(row[6]||'1')}</span></td>`;
+    frag.appendChild(tr);
+  });
+  tbody.innerHTML=''; tbody.appendChild(frag);
+}
+
+function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function updateSortHeaders() {
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.classList.remove('sorted-asc','sorted-desc');
+    const icon = th.querySelector('.sort-icon'); if (icon) icon.textContent='⇅';
+  });
+  const th = document.querySelector(`th[data-col="${currentSort.col}"]`);
+  if (th) {
+    th.classList.add(currentSort.dir==='asc'?'sorted-asc':'sorted-desc');
+    const icon = th.querySelector('.sort-icon'); if (icon) icon.textContent=currentSort.dir==='asc'?'↑':'↓';
+  }
+}
+
+function updateSortLabel() {
+  document.getElementById('sort-label').textContent = SORTABLE_COLS[currentSort.col]||'';
+  document.getElementById('sort-dir-label').textContent = currentSort.dir==='asc'?'↑ Ascendente':'↓ Descendente';
+}
+
+function updateStats(filename) {
+  document.getElementById('stat-total').textContent = allData.length;
+  const titulares = allData.filter(r => (r[1]||'').trim()==='00').length;
+  document.getElementById('stat-titulares').textContent = titulares;
+  document.getElementById('stat-otros').textContent = allData.length - titulares;
+  document.getElementById('stat-filename').textContent = filename;
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function toggleExportMenu() { document.getElementById('export-menu').classList.toggle('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('.export-wrap')) document.getElementById('export-menu').classList.remove('open'); });
+
+function openExportModal(type) {
+  exportType = type;
+  document.getElementById('export-menu').classList.remove('open');
+  document.getElementById('modal-title').textContent = type==='excel'?'Exportar a Excel':'Exportar a PDF';
+  document.getElementById('modal-sub').textContent = 'Columnas a incluir · ' + (SORTABLE_COLS[currentSort.col]||'') + ' ' + (currentSort.dir==='asc'?'↑':'↓');
+  document.getElementById('modal-ok-btn').textContent = type==='excel'?'📊 Exportar Excel':'📄 Exportar PDF';
+  buildColChecks();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function buildColChecks() {
+  const wrap = document.getElementById('col-checks'); wrap.innerHTML='';
+  COLS.forEach(col => {
+    const div = document.createElement('div');
+    div.className='col-check checked'; div.id='check-wrap-'+col.key;
+    div.innerHTML=`<input type="checkbox" id="chk-${col.key}" checked onchange="toggleCheck(${col.key})"><label for="chk-${col.key}">${col.label}</label>`;
+    div.onclick = e => { if (e.target.tagName!=='INPUT') document.getElementById('chk-'+col.key).click(); };
+    wrap.appendChild(div);
+  });
+}
+
+function toggleCheck(key) { const c=document.getElementById('chk-'+key); document.getElementById('check-wrap-'+key).classList.toggle('checked',c.checked); }
+function selectAllCols(val) { COLS.forEach(col => { const c=document.getElementById('chk-'+col.key); if(c){c.checked=val;document.getElementById('check-wrap-'+col.key).classList.toggle('checked',val);} }); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
+function getSelectedCols() { return COLS.filter(col => { const c=document.getElementById('chk-'+col.key); return c&&c.checked; }); }
+
+function doExport() {
+  const selectedCols = getSelectedCols();
+  if (selectedCols.length===0) { toast('⚠ Seleccioná al menos una columna'); return; }
+  closeModal();
+  const data = filteredData.length>0?filteredData:allData;
+  const sortedBy = (SORTABLE_COLS[currentSort.col]||'col'+currentSort.col).replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+  const suffix = `_ord_${sortedBy}_${currentSort.dir}`;
+  if (exportType==='excel') exportToExcel(data,selectedCols,suffix);
+  else exportToPdf(data,selectedCols,suffix);
+}
+
+function exportToExcel(data, selectedCols, suffix) {
+  const headerRow = selectedCols.map(c=>c.label);
+  const allRows = [headerRow,...data.map(row=>selectedCols.map(c=>String(row[c.key]||'')))];
+  const colWidths = selectedCols.map((col,ci)=>{const m=Math.max(...allRows.map(r=>(r[ci]||'').length));return Math.max(60,Math.min(m*7,300));});
+  const colDefs = colWidths.map(w=>`<Column ss:AutoFitWidth="1" ss:Width="${w}"/>`).join('');
+  const xmlRowsStr = allRows.map((row,ri)=>{
+    const cells=row.map(cell=>{const val=String(cell).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const style=ri===0?' ss:StyleID="hdr"':'';return `<Cell${style}><Data ss:Type="String">${val}</Data></Cell>`;}).join('');
+    return `<Row>${cells}</Row>`;
+  }).join('\n');
+  const xml=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="hdr"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#003D94" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Padron"><Table>${colDefs}${xmlRowsStr}</Table></Worksheet></Workbook>`;
+  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const filename=`${originalFilename}${suffix}.xls`;
+  dlBlob(blob,filename); toast('✅ Excel exportado: '+filename);
+}
+
+function exportToPdf(data, selectedCols, suffix) {
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  doc.setFillColor(0,61,148); doc.rect(0,0,297,18,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('PAMI · Padrón de Afiliados',14,12);
+  doc.autoTable({startY:20,head:[selectedCols.map(c=>c.label)],body:data.map(row=>selectedCols.map(c=>String(row[c.key]||'').trim())),styles:{font:'helvetica',fontSize:8,cellPadding:2.5},headStyles:{fillColor:[0,87,168],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[240,242,245]},margin:{left:10,right:10}});
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text(`Página ${i} de ${pageCount}`,doc.internal.pageSize.width-14,doc.internal.pageSize.height-6,{align:'right'});}
+  const filename=`${originalFilename}${suffix}.pdf`;
+  doc.save(filename); toast('✅ PDF exportado: '+filename);
+}
+
+function exportToHtml() {
+  const data=filteredData.length>0?filteredData:allData;
+  if (!data.length){toast('⚠ No hay datos');return;}
+  const nombreMedico=medicoActivo?(medicoActivo.nombre||medicoActivo.usuario||'Médico'):'Médico';
+  const fecha=new Date().toLocaleDateString('es-AR');
+  const filename=`${originalFilename}_${fecha.replace(/\//g,'-')}.html`;
+  const html=buildHtmlPadron(data,nombreMedico,fecha,originalFilename);
+  dlBlob(new Blob([html],{type:'text/html;charset=utf-8'}),filename);
+  toast('✅ HTML exportado: '+filename);
+}
+
+function buildHtmlPadron(data,nombreMedico,fecha,baseFilename){
+  const titulares=data.filter(r=>(r[1]||'').trim()==='00').length;
+  const rowsHtml=data.map(row=>{const g=(row[1]||'').trim();return`<tr><td><span class="cell-beneficio">${esc(row[0])}</span></td><td><span class="badge-grado ${g==='00'?'badge-00':'badge-other'}">${esc(g)}</span></td><td><strong>${esc(row[2])}</strong></td><td>${esc((row[3]||'').trim())}</td><td>${esc(row[4])}</td><td>${esc(row[5])}</td><td>${esc(row[6]||'1')}</td></tr>`;}).join('');
+  return`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Padrón PAMI · ${esc(nombreMedico)}</title><style>body{font-family:sans-serif;background:#f0f2f5;color:#1a1f2e}header{background:#0057a8;color:#fff;padding:16px 32px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#003d94;color:#fff;padding:10px 14px;text-align:left}td{padding:9px 14px;border-bottom:1px solid #e2e6ec}tr:nth-child(even){background:#f7f8fa}.cell-beneficio{font-family:monospace;color:#0057a8}.badge-00{background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-size:11px}.badge-other{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:11px}</style></head><body><header><h2>Padrón PAMI · ${esc(nombreMedico)}</h2><p>Generado el ${fecha} · ${data.length} afiliados (${titulares} titulares)</p></header><table><thead><tr><th>N° Beneficio</th><th>Grado</th><th>Apellido y Nombre</th><th>Tipo Doc</th><th>N° Documento</th><th>Fecha Nacimiento</th><th>Módulos</th></tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+}
+
+function dlBlob(blob,filename){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);}
+
+// ── MAIL ──────────────────────────────────────────────────────────────────────
+async function enviarPorMail() {
+  const mailMedico = medicoActivo ? (medicoActivo.mail||'').trim() : '';
+  if (!mailMedico) { alert('⚠ Este médico no tiene mail cargado.'); return; }
+  const {data:cfg} = await db.from('config').select('valor').eq('clave','mail_config').maybeSingle();
+  if (!cfg || !JSON.parse(cfg.valor||'{}').mail) { alert('⚠ No hay mail remitente configurado. Andá a Gestión de Usuarios → Configurar mail.'); return; }
+  document.getElementById('mail-pre-titulo').textContent = '✉ Enviar padrón · ' + (medicoActivo?.nombre||'');
+  document.getElementById('mail-pre-modal-overlay').classList.add('open');
+}
+
+function cerrarMailPreModal() { document.getElementById('mail-pre-modal-overlay').classList.remove('open'); }
+function toggleMailChk(tipo){const c=document.getElementById('mail-chk-'+tipo);c.checked=!c.checked;syncMailChkClass(tipo);}
+function syncMailChkClass(tipo){document.getElementById('mail-chk-wrap-'+tipo).classList.toggle('checked',document.getElementById('mail-chk-'+tipo).checked);}
+
+async function confirmarEnvioMail() {
+  const inclExcel = document.getElementById('mail-chk-excel').checked;
+  const inclPdf   = document.getElementById('mail-chk-pdf').checked;
+  if (!inclExcel && !inclPdf) { alert('⚠ Seleccioná al menos un archivo.'); return; }
+  cerrarMailPreModal();
+  const {data:cfgRow} = await db.from('config').select('valor').eq('clave','mail_config').maybeSingle();
+  const cfg = cfgRow ? JSON.parse(cfgRow.valor||'{}') : {};
+  const mailMedico = medicoActivo ? (medicoActivo.mail||'').trim() : '';
+  const nombreMedico = medicoActivo ? medicoActivo.nombre : 'el médico';
+  const data = filteredData.length>0?filteredData:allData;
+  const fecha = new Date().toLocaleDateString('es-AR');
+  const sufijo = '_padron_' + fecha.replace(/\//g,'-');
+  const archivos = [];
+  const btn = document.getElementById('btn-enviar-mail');
+  btn.disabled = true; btn.textContent = '⏳ Generando...';
+  try {
+    if (inclExcel) { exportToExcel(data, COLS, sufijo); archivos.push((originalFilename||'padron')+sufijo+'.xls'); await new Promise(r=>setTimeout(r,300)); }
+    if (inclPdf) {
+      const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+      doc.setFillColor(0,61,148);doc.rect(0,0,297,18,'F');doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('PAMI · Padrón · '+nombreMedico,14,12);
+      doc.autoTable({startY:20,head:[COLS.map(c=>c.label)],body:data.map(row=>COLS.map(c=>String(row[c.key]||'').trim())),styles:{font:'helvetica',fontSize:8},headStyles:{fillColor:[0,87,168],textColor:255,fontStyle:'bold'},margin:{left:10,right:10}});
+      const blob=doc.output('blob');
+      dlBlob(blob,(originalFilename||'padron')+sufijo+'.pdf');
+      archivos.push((originalFilename||'padron')+sufijo+'.pdf');
+      await new Promise(r=>setTimeout(r,300));
+    }
+    const asunto=encodeURIComponent('Padrón de Afiliados PAMI · '+nombreMedico+' · '+fecha);
+    const cuerpo=encodeURIComponent('Estimado/a '+nombreMedico+',\n\nAdjunto el padrón de afiliados PAMI actualizado al '+fecha+'.\n\nArchivos: '+archivos.join(', ')+(cfg.nombre?'\n\n'+cfg.nombre:''));
+    window.location.href=`mailto:${mailMedico}?subject=${asunto}&body=${cuerpo}`;
+    toast('✉ Mail preparado para: ' + mailMedico);
+  } finally {
+    btn.disabled=false; btn.textContent='✉ Enviar por mail';
+  }
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function showApp() {
+  document.getElementById('dropzone').style.display='none';
+  document.getElementById('stats-bar').classList.add('visible');
+  document.getElementById('controls').classList.add('visible');
+  document.getElementById('table-wrap').classList.add('visible');
+  document.getElementById('footer-bar').classList.add('visible');
+  document.getElementById('export-btn').disabled=false;
+  document.getElementById('btn-enviar-mail').disabled=false;
+  updateSortHeaders(); updateSortLabel();
+}
+
+function showLoading(show) {
+  document.getElementById('loading').style.display=show?'block':'none';
+  if (show) document.getElementById('dropzone').style.display='none';
+  else if (allData.length===0) document.getElementById('dropzone').style.display='block';
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
