@@ -1,8 +1,8 @@
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 // Reemplazá estos valores con los de tu proyecto en https://supabase.com
 // Los encontrás en: Project Settings → API → Project URL y anon/public key
-const SUPABASE_URL  = 'https://TU_PROYECTO.supabase.co';
-const SUPABASE_ANON = 'TU_ANON_KEY_AQUI';
+const SUPABASE_URL  = 'https://roexnasadpjwworicqmo.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZXhuYXNhZHBqd3dvcmljcW1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NjEyNjQsImV4cCI6MjA5ODMzNzI2NH0.QWQu8g3uyicvi-V_bGu39HtjlzEjY_rlpmDO-yeTjHU';
 
 // Contraseña simple para que solo el estudio pueda acceder
 // Cambiala por algo que vos elijas
