@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "PAMI Padrón Downloader",
+  "version": "1.1",
+  "description": "Descarga automática del padrón de afiliados PAMI desde efectores",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://efectores.pami.org.ar/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://efectores.pami.org.ar/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PAMI Padrón",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "externally_connectable": {
+    "matches": [
+      "file://*/*",
+      "http://localhost/*",
+      "https://localhost/*",
+      "https://*.github.io/*"
+    ]
+  }
+}
